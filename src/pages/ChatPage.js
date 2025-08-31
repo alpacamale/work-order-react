@@ -134,9 +134,29 @@ const ChatPage = () => {
           overflowY: "auto",
         }}
       >
-        <h3 style={{ padding: "12px", borderBottom: "1px solid #ddd" }}>
-          채팅
-        </h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "12px",
+            borderBottom: "1px solid #ddd",
+          }}
+        >
+          <h3 style={{ margin: 0 }}>채팅</h3>
+          <button
+            onClick={() => navigate("/chat/new")}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "20px",
+              cursor: "pointer",
+            }}
+          >
+            ＋
+          </button>
+        </div>
+
         {chatRooms.map((room) => (
           <div
             key={room._id}
@@ -200,33 +220,82 @@ const ChatPage = () => {
             {/* 채팅 내역 */}
             <div style={{ flex: 1, padding: "16px", overflowY: "auto" }}>
               {messages.map((msg) => {
-                const isMine = msg.author?._id === currentUser?._id;
-                return (
-                  <div
-                    key={msg._id}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: isMine ? "flex-end" : "flex-start",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                      {!isMine && msg.author?.username}{" "}
-                      {new Date(msg.createdAt).toLocaleTimeString()}
-                    </div>
+                const isMine = msg.sender?._id === currentUser?._id;
+
+                if (isMine) {
+                  // 🔹 내 메시지 (오른쪽 정렬 + 시간 표시)
+                  return (
                     <div
+                      key={msg._id}
                       style={{
-                        maxWidth: "60%",
-                        padding: "8px 12px",
-                        borderRadius: "12px",
-                        background: isMine ? "#DCF8C6" : "#F1F1F1",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
+                        marginBottom: "12px",
                       }}
                     >
-                      {msg.text}
+                      {/* 보낸 시간 */}
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#666",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {msg.createdAt &&
+                          new Date(msg.createdAt).toLocaleTimeString()}
+                      </div>
+                      {/* 말풍선 */}
+                      <div
+                        style={{
+                          maxWidth: "60%",
+                          padding: "8px 12px",
+                          borderRadius: "12px",
+                          background: "#DCF8C6",
+                        }}
+                      >
+                        {msg.text}
+                      </div>
                     </div>
-                  </div>
-                );
+                  );
+                } else {
+                  // 🔹 상대 메시지 (왼쪽 정렬 + username + name + 시간)
+                  return (
+                    <div
+                      key={msg._id}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      {/* username (name) + 시간 */}
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          color: "#666",
+                          marginBottom: "4px",
+                        }}
+                      >
+                        {msg.sender?.username} ({msg.sender?.name}){" "}
+                        {msg.createdAt &&
+                          new Date(msg.createdAt).toLocaleTimeString()}
+                      </div>
+                      {/* 메시지 */}
+                      <div
+                        style={{
+                          maxWidth: "60%",
+                          padding: "8px 12px",
+                          borderRadius: "12px",
+                          background: "#F1F1F1",
+                        }}
+                      >
+                        {msg.text}
+                      </div>
+                    </div>
+                  );
+                }
               })}
             </div>
 

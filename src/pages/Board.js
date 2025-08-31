@@ -12,18 +12,33 @@ function Board() {
     async function fetchData() {
       try {
         const savedUser = localStorage.getItem("user");
+        let userData = null;
+
         if (savedUser) {
           const parsed = JSON.parse(savedUser);
-          const userData = await getUserById(parsed._id || parsed.id);
+          userData = await getUserById(parsed._id || parsed.id);
           setUser(userData);
         }
 
         const posts = await getPosts();
+
+        // ✅ 공지사항은 전체 보여주기
         setNotices(posts.filter((p) => p.category === "공지사항"));
+
+        // ✅ 내가 멘션되었거나, 내가 작성한 글만
+        const myTasks = userData
+          ? posts.filter(
+              (p) =>
+                p.category !== "공지사항" &&
+                (p.author?._id === userData._id || // 내가 쓴 글
+                  p.mentions?.some((m) => m._id === userData._id)) // 내가 멘션된 글
+            )
+          : [];
+
         setTasks({
-          new: posts.filter((p) => p.category === "새로운 작업"),
-          progress: posts.filter((p) => p.category === "진행중"),
-          done: posts.filter((p) => p.category === "완료"),
+          new: myTasks.filter((p) => p.category === "새로운 작업"),
+          progress: myTasks.filter((p) => p.category === "진행중"),
+          done: myTasks.filter((p) => p.category === "완료"),
         });
       } catch (err) {
         console.error("데이터 불러오기 실패:", err.message);
