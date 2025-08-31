@@ -7,10 +7,13 @@ function TaskCard({
   importance = "Priority",
   author,
   createdAt,
+  mentions = [], // ✅ Post에 등록된 mentions (populate된 [{_id, username}])
 }) {
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState([]);
-  const [newComment, setNewComment] = useState(""); // ✅ 입력값 상태
+  const [newComment, setNewComment] = useState("");
+  const [commentMentions, setCommentMentions] = useState([]); // 선택된 멘션 id 배열
+  const [showMentionBox, setShowMentionBox] = useState(false);
 
   const importanceColors = {
     Urgent: "red",
@@ -50,6 +53,24 @@ function TaskCard({
     if (expanded) fetchComments();
   }, [expanded]);
 
+  // ✅ 댓글 입력값 변경
+  const handleCommentChange = (e) => {
+    const value = e.target.value;
+    setNewComment(value);
+
+    // 마지막 글자가 @이면 멘션 박스 열기
+    if (value.endsWith("@")) {
+      setShowMentionBox(true);
+    }
+  };
+
+  // ✅ 멘션 선택
+  const handleMentionSelect = (user) => {
+    setNewComment((prev) => prev + user.username + " ");
+    setCommentMentions((prev) => [...new Set([...prev, user._id])]);
+    setShowMentionBox(false);
+  };
+
   // ✅ 댓글 작성
   const handleCommentSubmit = async () => {
     if (!newComment.trim()) return;
@@ -62,13 +83,16 @@ function TaskCard({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({ content: newComment }),
+          body: JSON.stringify({
+            content: newComment,
+          }),
         }
       );
       if (!res.ok) throw new Error("댓글 등록 실패");
 
-      setNewComment(""); // 입력창 비우기
-      fetchComments(); // 새 댓글 목록 다시 불러오기
+      setNewComment("");
+      setCommentMentions([]);
+      fetchComments();
     } catch (err) {
       alert("❌ " + err.message);
     }
@@ -132,17 +156,54 @@ function TaskCard({
             )}
 
             {/* ✅ 댓글 입력창 */}
-            <div style={styles.commentForm}>
-              <input
-                type="text"
-                placeholder="댓글을 입력하세요..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                style={styles.commentInput}
-              />
-              <button onClick={handleCommentSubmit} style={styles.commentBtn}>
-                등록
-              </button>
+            <div style={{ position: "relative" }}>
+              <div style={styles.commentForm}>
+                <textarea
+                  placeholder="댓글을 입력하세요... (@멘션 가능)"
+                  value={newComment}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewComment(value);
+
+                    // 마지막 글자가 @ 이면 멘션 박스 오픈
+                    if (value.endsWith("@")) {
+                      setShowMentionBox(true);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault(); // 줄바꿈 막고 등록 실행
+                      handleCommentSubmit();
+                    }
+                  }}
+                  style={styles.commentInput}
+                  rows={2}
+                />
+                <button onClick={handleCommentSubmit} style={styles.commentBtn}>
+                  등록
+                </button>
+              </div>
+
+              {/* ✅ 멘션 후보 박스 */}
+              {showMentionBox && (
+                <div style={styles.mentionBox}>
+                  {mentions.length > 0 ? (
+                    mentions.map((u) => (
+                      <div
+                        key={u._id}
+                        style={styles.mentionItem}
+                        onClick={() => handleMentionSelect(u)}
+                      >
+                        @{u.username}
+                      </div>
+                    ))
+                  ) : (
+                    <div style={styles.mentionItem}>
+                      멘션할 수 있는 유저 없음
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -177,8 +238,6 @@ const styles = {
   },
   commentDate: { fontSize: "12px", color: "gray" },
   commentContent: { margin: 0, fontSize: "14px" },
-
-  // ✅ 댓글 입력폼 스타일
   commentForm: { display: "flex", gap: "8px", marginTop: "10px" },
   commentInput: {
     flex: 1,
@@ -186,6 +245,8 @@ const styles = {
     fontSize: "14px",
     border: "1px solid #ccc",
     borderRadius: "4px",
+    resize: "none", // 크기조절 막기
+    lineHeight: "1.4",
   },
   commentBtn: {
     padding: "6px 12px",
@@ -194,6 +255,24 @@ const styles = {
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
+  },
+  mentionBox: {
+    position: "absolute",
+    bottom: "45px",
+    left: 0,
+    background: "white",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+    width: "200px",
+    maxHeight: "150px",
+    overflowY: "auto",
+    zIndex: 10,
+  },
+  mentionItem: {
+    padding: "6px 10px",
+    cursor: "pointer",
+    borderBottom: "1px solid #eee",
   },
 };
 
