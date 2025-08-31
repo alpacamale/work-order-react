@@ -12,7 +12,6 @@ function TaskCard({
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [commentMentions, setCommentMentions] = useState([]); // 선택된 멘션 id 배열
   const [showMentionBox, setShowMentionBox] = useState(false);
 
   const importanceColors = {
@@ -67,7 +66,6 @@ function TaskCard({
   // ✅ 멘션 선택
   const handleMentionSelect = (user) => {
     setNewComment((prev) => prev + user.username + " ");
-    setCommentMentions((prev) => [...new Set([...prev, user._id])]);
     setShowMentionBox(false);
   };
 
@@ -91,7 +89,6 @@ function TaskCard({
       if (!res.ok) throw new Error("댓글 등록 실패");
 
       setNewComment("");
-      setCommentMentions([]);
       fetchComments();
     } catch (err) {
       alert("❌ " + err.message);

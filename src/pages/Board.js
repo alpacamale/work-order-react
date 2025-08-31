@@ -64,10 +64,12 @@ function Board() {
         {notices.map((n) => (
           <NoticeCard
             key={n._id}
+            _id={n._id}
             title={n.title}
             content={n.content}
             author={n.author}
             createdAt={n.createdAt}
+            currentUser={user}
           />
         ))}
       </div>

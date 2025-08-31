@@ -89,6 +89,24 @@ export async function createPost({ title, category, importance, content }) {
   return res.json();
 }
 
+// 게시글 수정
+export async function updatePost(id, { title, category, importance, content }) {
+  const res = await fetch(`${API_BASE_URL}/posts/${id}`, {
+    method: "PUT", // ✅ 수정은 PUT
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify({ title, category, importance, content }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || "글 수정 실패");
+  }
+  return res.json();
+}
+
 // 파일 업로드 (별도 엔드포인트)
 export async function uploadFiles(files) {
   const formData = new FormData();
