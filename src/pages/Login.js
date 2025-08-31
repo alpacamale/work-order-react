@@ -1,18 +1,20 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../api";
 
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const data = await login(username, password);
       localStorage.setItem("token", data.token); // JWT 저장
-      setMessage("✅ 로그인 성공!");
+      localStorage.setItem("user", JSON.stringify(data.user));
+      navigate("/board"); // 보드 페이지로 이동
     } catch (err) {
       setMessage("❌ 로그인 실패: " + err.message);
     }

@@ -16,7 +16,6 @@ function Signup() {
       await signup(username, password, name, position);
       alert("✅ 회원가입 성공! 로그인 페이지로 이동합니다.");
       navigate("/login"); // 로그인 페이지로 이동
-      setMessage("✅ 회원가입 성공! 로그인 해주세요.");
     } catch (err) {
       setMessage("❌ 회원가입 실패: " + err.message);
     }
