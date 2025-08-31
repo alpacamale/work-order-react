@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function TaskCard({
   _id,
@@ -8,11 +9,13 @@ function TaskCard({
   author,
   createdAt,
   mentions = [], // ✅ Post에 등록된 mentions (populate된 [{_id, username}])
+  currentUser,
 }) {
   const [expanded, setExpanded] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [showMentionBox, setShowMentionBox] = useState(false);
+  const navigate = useNavigate();
 
   const importanceColors = {
     Urgent: "red",
@@ -81,9 +84,7 @@ function TaskCard({
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            content: newComment,
-          }),
+          body: JSON.stringify({ content: newComment }),
         }
       );
       if (!res.ok) throw new Error("댓글 등록 실패");
@@ -95,6 +96,36 @@ function TaskCard({
     }
   };
 
+  // ✅ 권한 체크
+  const isAuthor =
+    currentUser &&
+    (currentUser._id === author?._id || currentUser._id === author);
+  const isMentioned =
+    currentUser && mentions.some((m) => m._id === currentUser._id);
+
+  // ✅ 카테고리 변경
+  const handleCategoryChange = async (e) => {
+    const newCategory = e.target.value;
+
+    try {
+      const res = await fetch(
+        `https://api.work-order.org/v1/posts/${_id}/category`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ category: newCategory }),
+        }
+      );
+
+      if (!res.ok) throw new Error("카테고리 변경 실패");
+      window.location.reload();
+    } catch (err) {
+      alert("❌ " + err.message);
+    }
+  };
   return (
     <div style={styles.card}>
       {/* 카드 헤더 */}
@@ -126,6 +157,26 @@ function TaskCard({
             지시일: {createdAt ? formatDate(createdAt) : "N/A"}
           </p>
           <p style={{ ...styles.content, whiteSpace: "pre-line" }}>{content}</p>
+
+          {/* ✅ 작성자 / 멘션된 사용자 권한 영역 */}
+          <div style={styles.actions}>
+            {isAuthor && (
+              <button
+                style={styles.editBtn}
+                onClick={() => navigate(`/posts/${_id}/edit`)}
+              >
+                수정
+              </button>
+            )}
+            {(isAuthor || isMentioned) && (
+              <select style={styles.select} onChange={handleCategoryChange}>
+                <option value="">카테고리 변경</option>
+                <option value="새로운 작업">새로운 작업</option>
+                <option value="진행중">진행중</option>
+                <option value="완료">완료</option>
+              </select>
+            )}
+          </div>
 
           {/* 댓글 목록 */}
           <div style={styles.comments}>
@@ -226,6 +277,22 @@ const styles = {
   cardBody: { marginTop: "10px" },
   meta: { fontSize: "14px", color: "gray", marginBottom: "10px" },
   content: { fontSize: "15px", marginBottom: "15px" },
+  actions: { display: "flex", gap: "8px", marginBottom: "15px" },
+  editBtn: {
+    padding: "4px 8px",
+    background: "#007bff",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+    fontSize: "12px",
+  },
+  select: {
+    padding: "4px 6px",
+    fontSize: "12px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
   comments: { borderTop: "1px solid #eee", paddingTop: "10px" },
   commentItem: { marginBottom: "10px" },
   commentHeader: {

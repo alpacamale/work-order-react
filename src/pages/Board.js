@@ -79,19 +79,19 @@ function Board() {
         <div style={styles.column}>
           <h3>새로운 작업</h3>
           {tasks.new.map((t) => (
-            <TaskCard key={t._id} {...t} />
+            <TaskCard key={t._id} {...t} currentUser={user} />
           ))}
         </div>
         <div style={styles.column}>
           <h3>진행중</h3>
           {tasks.progress.map((t) => (
-            <TaskCard key={t._id} {...t} />
+            <TaskCard key={t._id} {...t} currentUser={user} />
           ))}
         </div>
         <div style={styles.column}>
           <h3>완료</h3>
           {tasks.done.map((t) => (
-            <TaskCard key={t._id} {...t} />
+            <TaskCard key={t._id} {...t} currentUser={user} />
           ))}
         </div>
       </div>
