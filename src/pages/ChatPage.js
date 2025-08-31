@@ -215,17 +215,27 @@ const ChatPage = () => {
                 position: "relative",
               }}
             >
-              <input
+              <textarea
                 ref={inputRef}
-                type="text"
+                rows={2}
                 placeholder="@username 메시지 입력..."
                 value={input}
                 onChange={handleChange}
-                style={{ width: "80%", padding: "8px" }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault(); // 기본 줄바꿈 막기
+                    handleSend(); // 메시지 전송
+                  }
+                }}
+                style={{ width: "80%", padding: "8px", resize: "none" }}
               />
               <button
                 onClick={handleSend}
-                style={{ padding: "8px 12px", marginLeft: "8px" }}
+                style={{
+                  padding: "8px 12px",
+                  marginLeft: "8px",
+                  verticalAlign: "top",
+                }}
               >
                 전송
               </button>
@@ -235,7 +245,7 @@ const ChatPage = () => {
                 <div
                   style={{
                     position: "absolute",
-                    bottom: "50px",
+                    bottom: "60px",
                     left: "10px",
                     width: "200px",
                     background: "white",
