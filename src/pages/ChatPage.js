@@ -4,13 +4,16 @@ import { useParams, useNavigate } from "react-router-dom";
 const ChatPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [chatRooms, setChatRooms] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
   const [users, setUsers] = useState([]);
+  const [input, setInput] = useState("");
+  const [showMentions, setShowMentions] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const inputRef = useRef();
 
-  const currentUser = JSON.parse(localStorage.getItem("user")); // ✅ 로그인 유저
+  const currentUser = JSON.parse(localStorage.getItem("user"));
 
   // 🔹 채팅방 목록 불러오기
   useEffect(() => {
@@ -28,7 +31,23 @@ const ChatPage = () => {
     fetchRooms();
   }, []);
 
-  // 🔹 채팅방 메시지 불러오기
+  // 🔹 유저 목록 (멘션 자동완성용)
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("https://api.work-order.org/v1/users", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("❌ 유저 목록 불러오기 실패:", err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // 🔹 메시지 불러오기
   useEffect(() => {
     if (!id) return;
     const fetchMessages = async () => {
@@ -49,6 +68,32 @@ const ChatPage = () => {
     };
     fetchMessages();
   }, [id]);
+
+  // 🔹 입력 변경 시 멘션 후보 띄우기
+  const handleChange = (e) => {
+    const val = e.target.value;
+    setInput(val);
+
+    const match = val.match(/@(\w*)$/); // 마지막 단어가 @로 시작하면
+    if (match) {
+      const keyword = match[1].toLowerCase();
+      const filtered = users.filter((u) =>
+        u.username.toLowerCase().startsWith(keyword)
+      );
+      setFilteredUsers(filtered);
+      setShowMentions(true);
+    } else {
+      setShowMentions(false);
+    }
+  };
+
+  // 🔹 멘션 선택
+  const handleSelectUser = (username) => {
+    const newText = input.replace(/@\w*$/, `@${username} `);
+    setInput(newText);
+    setShowMentions(false);
+    inputRef.current.focus();
+  };
 
   // 🔹 메시지 전송
   const handleSend = async () => {
@@ -162,14 +207,20 @@ const ChatPage = () => {
               })}
             </div>
 
-            {/* 🔹 입력창 */}
-            <div style={{ borderTop: "1px solid #ddd", padding: "8px" }}>
+            {/* 입력창 */}
+            <div
+              style={{
+                borderTop: "1px solid #ddd",
+                padding: "8px",
+                position: "relative",
+              }}
+            >
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="메시지를 입력하세요..."
+                placeholder="@username 메시지 입력..."
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleChange}
                 style={{ width: "80%", padding: "8px" }}
               />
               <button
@@ -178,6 +229,44 @@ const ChatPage = () => {
               >
                 전송
               </button>
+
+              {/* 멘션 자동완성 드롭다운 */}
+              {showMentions && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "50px",
+                    left: "10px",
+                    width: "200px",
+                    background: "white",
+                    border: "1px solid #ccc",
+                    borderRadius: "4px",
+                    maxHeight: "150px",
+                    overflowY: "auto",
+                    zIndex: 100,
+                  }}
+                >
+                  {filteredUsers.length > 0 ? (
+                    filteredUsers.map((user) => (
+                      <div
+                        key={user._id}
+                        onClick={() => handleSelectUser(user.username)}
+                        style={{
+                          padding: "8px",
+                          cursor: "pointer",
+                          borderBottom: "1px solid #eee",
+                        }}
+                      >
+                        @{user.username} ({user.name})
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: "8px", color: "#888" }}>
+                      일치하는 유저 없음
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </>
         ) : (
