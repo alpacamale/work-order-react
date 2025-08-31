@@ -11,6 +11,7 @@ const ChatPage = () => {
   const [input, setInput] = useState("");
   const [showMentions, setShowMentions] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [showParticipants, setShowParticipants] = useState(false); // ✅ 참가자 패널 상태
   const inputRef = useRef();
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -125,7 +126,7 @@ const ChatPage = () => {
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      {/* 왼쪽: 채팅방 목록 */}
+      {/* 🔹 왼쪽 - 채팅방 목록 */}
       <div
         style={{
           width: "280px",
@@ -157,22 +158,46 @@ const ChatPage = () => {
         ))}
       </div>
 
-      {/* 오른쪽: 채팅방 상세 */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      {/* 🔹 오른쪽 - 채팅방 상세 */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
         {id ? (
           <>
-            {/* 🔹 채팅방 제목 */}
+            {/* 제목줄 */}
             <div
               style={{
                 borderBottom: "1px solid #ddd",
                 padding: "12px",
                 fontWeight: "bold",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
             >
-              {currentRoom?.name} ({currentRoom?.participants?.length || 0})
+              <span>
+                {currentRoom?.name} ({currentRoom?.participants?.length || 0})
+              </span>
+              {/* ☰ 햄버거 버튼 */}
+              <button
+                onClick={() => setShowParticipants((prev) => !prev)}
+                style={{
+                  fontSize: "18px",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                ☰
+              </button>
             </div>
 
-            {/* 🔹 채팅 내역 */}
+            {/* 채팅 내역 */}
             <div style={{ flex: 1, padding: "16px", overflowY: "auto" }}>
               {messages.map((msg) => {
                 const isMine = msg.author?._id === currentUser?._id;
@@ -186,12 +211,10 @@ const ChatPage = () => {
                       marginBottom: "12px",
                     }}
                   >
-                    {/* 이름 + 시간 */}
                     <div style={{ fontSize: "12px", color: "#666" }}>
                       {!isMine && msg.author?.username}{" "}
                       {new Date(msg.createdAt).toLocaleTimeString()}
                     </div>
-                    {/* 메시지 내용 */}
                     <div
                       style={{
                         maxWidth: "60%",
@@ -207,7 +230,7 @@ const ChatPage = () => {
               })}
             </div>
 
-            {/* 입력창 */}
+            {/* 입력창 (엔터 전송/Shift+Enter 줄바꿈 그대로) */}
             <div
               style={{
                 borderTop: "1px solid #ddd",
@@ -239,7 +262,6 @@ const ChatPage = () => {
               >
                 전송
               </button>
-
               {/* 멘션 자동완성 드롭다운 */}
               {showMentions && (
                 <div
@@ -278,6 +300,46 @@ const ChatPage = () => {
                 </div>
               )}
             </div>
+
+            {/* 참가자 패널 */}
+            {showParticipants && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50px",
+                  right: "10px",
+                  width: "250px",
+                  background: "#fff",
+                  border: "1px solid #ccc",
+                  borderRadius: "8px",
+                  boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                  zIndex: 200,
+                }}
+              >
+                <h4
+                  style={{
+                    margin: 0,
+                    padding: "8px",
+                    borderBottom: "1px solid #eee",
+                  }}
+                >
+                  참가자 목록
+                </h4>
+                <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+                  {currentRoom?.participants?.map((p) => (
+                    <div
+                      key={p._id}
+                      style={{
+                        padding: "8px",
+                        borderBottom: "1px solid #f5f5f5",
+                      }}
+                    >
+                      @{p.username} ({p.name})
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <div
