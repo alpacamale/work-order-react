@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../api";
 
-function Login() {
+function Login({ setIsLoggedIn }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -14,6 +14,7 @@ function Login() {
       const data = await login(username, password);
       localStorage.setItem("token", data.token); // JWT 저장
       localStorage.setItem("user", JSON.stringify(data.user));
+      setIsLoggedIn(true);
       navigate("/board"); // 보드 페이지로 이동
     } catch (err) {
       setMessage("❌ 로그인 실패: " + err.message);

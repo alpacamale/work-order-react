@@ -125,7 +125,7 @@ const ChatPage = () => {
   const currentRoom = chatRooms.find((r) => r._id === id);
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div style={{ display: "flex", height: "calc(100vh - 77px)" }}>
       {/* 🔹 왼쪽 - 채팅방 목록 */}
       <div
         style={{
@@ -220,7 +220,11 @@ const ChatPage = () => {
             {/* 채팅 내역 */}
             <div style={{ flex: 1, padding: "16px", overflowY: "auto" }}>
               {messages.map((msg) => {
-                const isMine = msg.sender?._id === currentUser?._id;
+                const currentUser = JSON.parse(localStorage.getItem("user"));
+                const myId = currentUser?._id || currentUser?.id;
+                const senderId =
+                  typeof msg.sender === "string" ? msg.sender : msg.sender?._id;
+                const isMine = String(senderId) === String(myId);
 
                 if (isMine) {
                   // 🔹 내 메시지 (오른쪽 정렬 + 시간 표시)
