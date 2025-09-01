@@ -63,14 +63,14 @@ function EditPost() {
       }
 
       alert("✅ 글이 작성되었습니다.");
-      window.location.href = "/board";
+      naviate("/board");
     } catch (err) {
       alert("❌ 오류: " + err.message);
     }
   };
 
   const handleCancel = () => {
-    window.location.href = "/board";
+    naviate("/board");
   };
 
   if (!post) return <strong>Loading ...</strong>;

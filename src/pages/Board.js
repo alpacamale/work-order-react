@@ -2,12 +2,14 @@ import React, { useState, useEffect } from "react";
 import { getPosts, getUserById } from "../api";
 import NoticeCard from "../components/NoticeCard";
 import TaskCard from "../components/TaskCard";
+import { useNavigate } from "react-router-dom";
 
 function Board() {
   const [user, setUser] = useState(null);
   const [notices, setNotices] = useState([]);
   const [tasks, setTasks] = useState({ new: [], progress: [], done: [] });
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -123,10 +125,7 @@ function Board() {
 
       <div style={styles.subBar}>
         <span style={styles.date}>{today}</span>
-        <button
-          style={styles.writeBtn}
-          onClick={() => (window.location.href = "/posts/new")}
-        >
+        <button style={styles.writeBtn} onClick={() => navigate("/posts/new")}>
           글쓰기
         </button>
       </div>

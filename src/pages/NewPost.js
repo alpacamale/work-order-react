@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPost, uploadFiles } from "../api";
+import { useNavigate } from "react-router-dom";
 
 function NewPost() {
   const [title, setTitle] = useState("");
@@ -10,6 +11,7 @@ function NewPost() {
   const [users, setUsers] = useState([]);
   const [showMentionBox, setShowMentionBox] = useState(false);
   const [files, setFiles] = useState([]);
+  const navigate = useNavigate();
 
   // 유저 불러오기
   useEffect(() => {
@@ -59,14 +61,14 @@ function NewPost() {
       }
 
       alert("✅ 글이 작성되었습니다.");
-      window.location.href = "/board";
+      navigate("/board");
     } catch (err) {
       alert("❌ 오류: " + err.message);
     }
   };
 
   const handleCancel = () => {
-    window.location.href = "/board";
+    navigate("/board");
   };
 
   return (
